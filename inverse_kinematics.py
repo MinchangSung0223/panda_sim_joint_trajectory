@@ -14,7 +14,7 @@ from sensor_msgs.msg import PointCloud2, PointField
 from std_msgs.msg import Header
 
 import threading
-joint_states = [0.000 ,-0.785, 0.000, -2.356, 0.000, 1.571 ,1.585];
+
 near = 0.01
 far = 1000
 
@@ -25,7 +25,7 @@ def callback(data):
 	trig_command=trig_command+1;
 	for i in range(len(data.points)):
 		q_list.append(data.points[i].positions)
-	
+	print(q_list)
 	
 
 def convert_depth_frame_to_pointcloud(depth_image):
@@ -65,6 +65,8 @@ def getCameraImage(cam_pos,cam_orn):
 					renderer=p.ER_BULLET_HARDWARE_OPENGL)
 	return images
 def publishPointCloud(d435Id,d435Id2):
+	global pub
+
 	while 1:
 		d435pos, d435orn = p.getBasePositionAndOrientation(d435Id)
 		d435quat = d435orn
@@ -153,10 +155,43 @@ def publishPointCloud(d435Id,d435Id2):
 		header.frame_id = "panda_link0"
 		pc2 = point_cloud2.create_cloud(header, fields, points)
 		pc2.header.stamp = rospy.Time.now()
+
 		pub.publish(pc2)
+def jointStatePublisher():
+	global joint_states
+	js = JointState()
+	js.header.stamp = rospy.Time.now()
+	js.name.append("panda_joint1")
+	js.name.append("panda_joint2")
+	js.name.append("panda_joint3")
+	js.name.append("panda_joint4")
+	js.name.append("panda_joint5")
+	js.name.append("panda_joint6")
+	js.name.append("panda_joint7")
+	js.position.append(0.0);
+	js.position.append(0.0);
+	js.position.append(0.0);
+	js.position.append(0.0);
+	js.position.append(0.0);
+	js.position.append(0.0);
+	js.position.append(0.0);
+	
+	js.position[0]=joint_states[0];
+	js.position[1]=joint_states[1];
+	js.position[2]=joint_states[2];
+	js.position[3]=joint_states[3];
+	js.position[4]=joint_states[4];
+	js.position[5]=joint_states[5];
+	js.position[6]=joint_states[6];
+	return js;
+		
+    		
 if __name__ == "__main__":
 	global trig_commnad
+	global joint_states
 	global q_list
+	global pub
+	global pub2
 	clid = p.connect(p.SHARED_MEMORY)
 	if (clid < 0):
 		p.connect(p.GUI)
@@ -166,7 +201,7 @@ if __name__ == "__main__":
 
 	#p.loadURDF("plane.urdf", [0, 0, -1.0])
 	tableId=p.loadURDF("./urdf/shelfandtable/shelfandtable.urdf", [0, 0, 0.0])
-	p.loadURDF("./urdf/checkerboard/calibration.urdf", [0.8, 0.0, 0.15],p.getQuaternionFromEuler([0,-math.pi/2,0]))
+	#obstacleId = p.loadURDF("./urdf/checkerboard/calibration.urdf", [0.8, 0.0, 0.15],p.getQuaternionFromEuler([0,-math.pi/2,0]))
 
 	d435Id = p.loadURDF("./urdf/d435/d435.urdf", [0, 0, 0.0])
 	p.resetBasePositionAndOrientation(d435Id, [0.5, 0.5, 0.6],p.getQuaternionFromEuler([0,-math.pi+math.pi/4,-math.pi/4]))
@@ -174,7 +209,9 @@ if __name__ == "__main__":
 	d435Id2 = p.loadURDF("./urdf/d435/d435.urdf", [0, 0, 0.0])
 	p.resetBasePositionAndOrientation(d435Id2, [0.5, -0.5, 0.6],p.getQuaternionFromEuler([0,-math.pi+math.pi/4,+math.pi/4]))
 	
-	
+	obstacleId = p.loadURDF("./urdf/obstacle/obstacle.urdf", [0, 0, 0.0])
+	p.resetBasePositionAndOrientation(obstacleId, [0.0, 0.0, 1.5],p.getQuaternionFromEuler([0,0,0]))
+		
 	pandaId = p.loadURDF("./urdf/Panda/panda.urdf", [0, 0, 0])
 	p.resetBasePositionAndOrientation(pandaId, [0, 0, 0], [0, 0, 0, 1])
 	cid = p.createConstraint(tableId, -1, pandaId, -1, p.JOINT_FIXED, [0, 0, 0], [0, 0, 0], [0., 0., 0],[0, 0, 0, 1])
@@ -183,17 +220,24 @@ if __name__ == "__main__":
 	rospy.init_node('listener', anonymous=True)
 	rospy.Subscriber("/joint_trajectory", JointTrajectory, callback)
 	pub = rospy.Publisher("/camera/depth/color/points", PointCloud2, queue_size=2)
-	
+	pub2 = rospy.Publisher("/joint_states", JointState, queue_size=2)
 	trig_command=0;
 	q_list = [];
 	
+	x_Id = p.addUserDebugParameter("x", 0, 1, 0.663)
+	y_Id = p.addUserDebugParameter("y", -1, 1, 0.0)
+	z_Id = p.addUserDebugParameter("z", 0, 2, 0.263)
+	joint_states = [0.000 ,-0.785, 0.000, -2.356, 0.000, 1.571 ,1.585];
 	t = threading.Thread(target=publishPointCloud, args=(d435Id,d435Id2))
+	
 	t.start()
 	while 1:
 		for i in range(numJoints):
 			p.resetJointState(pandaId, i, joint_states[i])
-		
-		
+		x = p.readUserDebugParameter(x_Id)
+		y = p.readUserDebugParameter(y_Id)
+		z = p.readUserDebugParameter(z_Id)		
+		p.resetBasePositionAndOrientation(obstacleId, [x, y, z], p.getQuaternionFromEuler([0,0,0]))	
 		if trig_command>0:
 			for j in range(len(q_list)):
 				joint_states = q_list[j]
@@ -206,5 +250,7 @@ if __name__ == "__main__":
 		
 			q_list = []
 			trig_command=0;
+			js=jointStatePublisher()
+			pub2.publish(js)			
 
 	p.disconnect()

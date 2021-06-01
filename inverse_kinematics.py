@@ -227,10 +227,12 @@ if __name__ == "__main__":
 	x_Id = p.addUserDebugParameter("x", 0, 1, 0.663)
 	y_Id = p.addUserDebugParameter("y", -1, 1, 0.0)
 	z_Id = p.addUserDebugParameter("z", 0, 2, 0.263)
-	joint_states = [0.000 ,-0.785, 0.000, -2.356, 0.000, 1.571 ,1.585];
+	joint_states = [0.000 ,-0.785, 0.000, -2.356, 0.000, 1.571 ,0.7849457];
 	t = threading.Thread(target=publishPointCloud, args=(d435Id,d435Id2))
 	
 	t.start()
+	js=jointStatePublisher()
+	pub2.publish(js)
 	while 1:
 		for i in range(numJoints):
 			p.resetJointState(pandaId, i, joint_states[i])
@@ -252,7 +254,9 @@ if __name__ == "__main__":
 		
 			q_list = []
 			trig_command=0;
-						
-
+		js=jointStatePublisher()
+		pub2.publish(js)					
+		p.stepSimulation();
+		time.sleep(0.2);
 
 	p.disconnect()

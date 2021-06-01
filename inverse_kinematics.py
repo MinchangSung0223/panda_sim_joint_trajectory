@@ -244,13 +244,15 @@ if __name__ == "__main__":
 				print(joint_states)
 				for i in range(numJoints):
 					p.resetJointState(pandaId, i, joint_states[i])
+				js=jointStatePublisher()
+				pub2.publish(js)
 				p.stepSimulation();
 				time.sleep(0.2);
 		
 		
 			q_list = []
 			trig_command=0;
-			js=jointStatePublisher()
-			pub2.publish(js)			
+						
+
 
 	p.disconnect()

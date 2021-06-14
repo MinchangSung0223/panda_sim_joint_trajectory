@@ -219,7 +219,7 @@ if __name__ == "__main__":
 	numJoints = 7
 	rospy.init_node('listener', anonymous=True)
 	rospy.Subscriber("/joint_trajectory", JointTrajectory, callback)
-	pub = rospy.Publisher("/camera/depth/color/points", PointCloud2, queue_size=2)
+	pub = rospy.Publisher("/camera/depth/color/points2", PointCloud2, queue_size=2)
 	pub2 = rospy.Publisher("/joint_states", JointState, queue_size=2)
 	trig_command=0;
 	q_list = [];
@@ -246,8 +246,8 @@ if __name__ == "__main__":
 				print(joint_states)
 				for i in range(numJoints):
 					p.resetJointState(pandaId, i, joint_states[i])
-				js=jointStatePublisher()
-				pub2.publish(js)
+				#js=jointStatePublisher()
+				#pub2.publish(js)
 				p.stepSimulation();
 				time.sleep(0.2);
 		

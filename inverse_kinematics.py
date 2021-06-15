@@ -204,10 +204,10 @@ if __name__ == "__main__":
 	#obstacleId = p.loadURDF("./urdf/checkerboard/calibration.urdf", [0.8, 0.0, 0.15],p.getQuaternionFromEuler([0,-math.pi/2,0]))
 
 	d435Id = p.loadURDF("./urdf/d435/d435.urdf", [0, 0, 0.0])
-	p.resetBasePositionAndOrientation(d435Id, [0.5, 0.5, 0.6],p.getQuaternionFromEuler([0,-math.pi+math.pi/4,-math.pi/4]))
+	p.resetBasePositionAndOrientation(d435Id, [0.35, 0.5, 0.7],p.getQuaternionFromEuler([0,-math.pi+math.pi/4,-math.pi/5]))
 	
 	d435Id2 = p.loadURDF("./urdf/d435/d435.urdf", [0, 0, 0.0])
-	p.resetBasePositionAndOrientation(d435Id2, [0.5, -0.5, 0.6],p.getQuaternionFromEuler([0,-math.pi+math.pi/4,+math.pi/4]))
+	p.resetBasePositionAndOrientation(d435Id2, [0.35, -0.5, 0.7],p.getQuaternionFromEuler([0,-math.pi+math.pi/4,+math.pi/5]))
 	
 	obstacleId = p.loadURDF("./urdf/obstacle/obstacle.urdf", [0, 0, 0.0])
 	p.resetBasePositionAndOrientation(obstacleId, [0.0, 0.0, 1.5],p.getQuaternionFromEuler([0,0,0]))

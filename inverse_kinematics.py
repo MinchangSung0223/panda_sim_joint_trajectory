@@ -255,9 +255,7 @@ if __name__ == "__main__":
 			q_list = []
 			trig_command=0;
 		js=jointStatePublisher()
-		pub2.publish(js)		
-		pub2.publish(js)	
-		pub2.publish(js)														
+		pub2.publish(js)															
 		p.stepSimulation();
 		time.sleep(0.2);
 
